@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: senzing-init-postgresql
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: senzing-init-postgresql
+    targetRevision: 1.0.0
+    repoURL: "https://hub.senzing.com/charts"
+    helm:
+      values: |
+        main:
+        
+          image:
+            registry: docker.io
+            tag: 1.1.4
+        
+          senzing:
+            configurationModifications: |
+              addDataSource CUSTOMERS
+              addDataSource REFERENCE
+              addDataSource WATCHLIST
+            engineConfigurationJson: >-
+              {
+                "PIPELINE": {
+                  "CONFIGPATH": "/etc/opt/senzing",
+                  "LICENSESTRINGBASE64": "",
+                  "RESOURCEPATH": "/opt/senzing/g2/resources",
+                  "SUPPORTPATH": "/opt/senzing/data"
+                },
+                "SQL": {
+                  "BACKEND": "SQL",
+                  "CONNECTION": "postgresql://postgres:postgres@postgresql-0:5432:G2"
+                }
+              }
+            subcommand: mandatory
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: senzing
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+    - Validate=false
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+
