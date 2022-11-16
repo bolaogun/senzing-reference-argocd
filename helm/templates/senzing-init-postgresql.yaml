@@ -13,10 +13,6 @@ spec:
       values: |
         main:
         
-          image:
-            registry: docker.io
-            tag: 1.1.4
-        
           senzing:
             configurationModifications: |
               addDataSource CUSTOMERS
